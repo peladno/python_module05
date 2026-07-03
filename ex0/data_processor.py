@@ -3,7 +3,7 @@ from typing import Any
 
 
 class DataProcessor(ABC):
-    def __init__(self):
+    def __init__(self) -> None:
         self._storage: list[tuple[int, str]] = []
         self._rank: int = 0
 
@@ -15,34 +15,108 @@ class DataProcessor(ABC):
     def ingest(self, data: Any) -> None:
         pass
 
+    def add_storage(self, data: str) -> None:
+        self._rank += 1
+        self._storage.append((self._rank, data))
+
     def output(self) -> tuple[int, str]:
-        print()
+        return self._storage.pop(0)
 
 
 class NumericProcessor(DataProcessor):
     def validate(self, data: Any) -> bool:
         if isinstance(data, (int, float)) and not isinstance(data, bool):
             return True
-        elif isinstance(data, list):
-            return True
-        else:
-            return False
+        if isinstance(data, list):
+            if not data:
+                return False
+            return all(isinstance(item, (int, float))
+                       and not isinstance(item, bool)for item in data)
+        return False
 
-    def ingest(self, data: int | float | list[int | float]):
+    def ingest(self, data: int | float | list[int | float]) -> None:
         if not self.validate(data):
             raise ValueError("Incorrect numeric data")
+        if isinstance(data, (int, float)):
+            self.add_storage(str(data))
+        else:
+            for item in data:
+                self.add_storage(str(item))
 
 
 class TextProcessor(DataProcessor):
-    def validate(self, data: list[str]):
-        isinstance()
+    def validate(self, data: Any) -> bool:
+        if isinstance(data, str):
+            return True
+        if isinstance(data, list):
+            if not data:
+                return False
+            return all(isinstance(item, str) for item in data)
+        return False
 
-    def ingest(self, data: list[str]):
+    def ingest(self, data: str | list[str]) -> None:
         if not self.validate(data):
             raise ValueError("Incorrect text data")
+        if isinstance(data, str):
+            self.add_storage(data)
+        else:
+            for item in data:
+                self.add_storage(item)
 
 
 class LogProcessor(DataProcessor):
-    def ingest(self, data: dict[str:str] | list[dict[str:str]]):
+    def _format_log(self, d: dict[str, str]) -> str:
+        level = d["log_level"]
+        msg = d["log_message"]
+        return f"{level}: {msg}"
+
+    def validate(self, data: Any) -> bool:
+        if isinstance(data, dict):
+            return all(isinstance(k, str) and isinstance(v, str)
+                       for k, v in data.items())
+
+        if isinstance(data, list):
+            if not data:
+                return False
+            return all(isinstance(d, dict) and all(
+                isinstance(k, str) and isinstance(v, str)
+                for k, v in d.items()
+            )for d in data)
+        return False
+
+    def ingest(self, data: dict[str, str] | list[dict[str, str]]) -> None:
         if not self.validate(data):
             raise ValueError("Incorrect input data")
+
+        if isinstance(data, dict):
+            self.add_storage(self._format_log(data))
+        else:
+            for d in data:
+                self.add_storage(self._format_log(d))
+
+
+def data_processor() -> None:
+
+    print("== Code Nexus - Data processor")
+    print()
+
+    print("Testing numeric processor")
+    numeric = NumericProcessor()
+
+    test1 = 42
+    print(f" Trying to validate '{42}': {numeric.validate(test1)}")
+
+    test2 = "Hola"
+    print(f" Trying to validate input '{test2}': {numeric.validate(test2)}")
+
+    test3 = True
+    print(f" Trying to validate input '{test3}': {numeric.validate(test3)}")
+
+    nums = [3, 4, 9, 4.3, 10]
+    for n in nums:
+        numeric.ingest(n)
+    print(" Processing data: ", nums)
+
+
+if __name__ == "__main__":
+    data_processor()

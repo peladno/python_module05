@@ -105,10 +105,8 @@ def data_processor() -> None:
 
     test1 = 42
     print(f" Trying to validate '{42}': {numeric.validate(test1)}")
-
     test2 = "Hola"
     print(f" Trying to validate input '{test2}': {numeric.validate(test2)}")
-
     test3 = True
     print(f" Trying to validate input '{test3}': {numeric.validate(test3)}")
 
@@ -116,6 +114,91 @@ def data_processor() -> None:
     for n in nums:
         numeric.ingest(n)
     print(" Processing data: ", nums)
+    print("Extracting 3 values")
+
+    for _ in range(3):
+        rank, value = numeric.output()
+        print(f" Extracting value {rank}: {value}")
+
+    print()
+    print("== Continuing tests ==")
+
+    print("Testing numeric processor (valid & invalid ingest)")
+    numeric2 = NumericProcessor()
+
+    # Valid ingest
+    numeric2.ingest(100)
+    numeric2.ingest([1, 2, 3])
+
+    # Invalid ingest (should raise)
+    try:
+        numeric2.ingest("hola")   # invalid
+    except ValueError as e:
+        print(" Caught expected exception in numeric ingest:", e)
+
+    print(" Extracting numeric data:")
+    while numeric2._storage:
+        rank, value = numeric2.output()
+        print(f"  Output -> rank {rank}, value {value}")
+
+    print()
+    print("Testing text processor")
+    text = TextProcessor()
+
+    test4 = ["hola", "como", 1]
+    print(f" Trying to validate input '{test4}': {text.validate(test4)}")
+    test5 = ["hola", "como", "estas?"]
+    print(f" Trying to validate input '{test5}': {text.validate(test5)}")
+
+    print()
+    print("Testing text processor (valid & invalid ingest)")
+    text2 = TextProcessor()
+
+    # Valid ingest
+    text2.ingest("hola")
+    text2.ingest(["uno", "dos"])
+
+    # Invalid ingest (should raise)
+    try:
+        text2.ingest([1, 2, 3])   # invalid
+    except ValueError as e:
+        print(" Caught expected exception in text ingest:", e)
+
+    print(" Extracting text data:")
+    while text2._storage:
+        rank, value = text2.output()
+        print(f"  Output -> rank {rank}, value {value}")
+
+    print()
+    print("Testing log processor")
+    logs = LogProcessor()
+
+    test6 = {1: "Error"}
+    print(f" Trying to validate input '{test6}':", logs.validate(test6))
+    test7 = {"ERROR": "Error in the matrix"}
+    print(f" Trying to validate input '{test7}':", logs.validate(test7))
+
+    print()
+    print("Testing log processor (valid & invalid ingest)")
+    logs2 = LogProcessor()
+
+    # Valid ingest
+    logs2.ingest({"log_level": "INFO", "log_message": "Todo OK"})
+    logs2.ingest([
+        {"log_level": "WARN", "log_message": "Cuidado"},
+        {"log_level": "ERROR", "log_message": "Boom"},
+    ])
+
+    # Invalid ingest (should raise)
+    try:
+        logs2.ingest({"log_level": 123, "log_message": "Nope"})  # invalid
+    except ValueError as e:
+        print(" Caught expected exception in log ingest:", e)
+
+    print(" Extracting log data:")
+    while logs2._storage:
+        rank, value = logs2.output()
+        print(f"  Output -> rank {rank}, value {value}")
 
 
 if __name__ == "__main__":

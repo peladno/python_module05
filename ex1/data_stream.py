@@ -109,16 +109,19 @@ class DataStream():
 
     def process_stream(self, stream: list[Any]) -> None:
         for item in stream:
+            handled = False
             for proc in self._processors:
                 if proc.validate(item):
                     proc.ingest(item)
-                else:
+                    handled = True
+                    break
+                if not handled:
                     print("DataStream error - "
                           "Can't process element in stream: ", item)
 
     def print_processors_stats(self) -> None:
         if len(self._processors) == 0:
-            print("No processor found, no data")
+            print("No processor found, no data", end="\n\n")
             return
         for proc in self._processors:
             len_store, rank = proc.data_status()
@@ -133,13 +136,48 @@ def data_stream() -> None:
              {'log_level': 'INFO', 'log_message': 'User wil isconnected'}],
             42,
             ['Hi', 'five']]
-    print("=== Code Nexus - Data Stream ===", end="\n\n")
 
-    numeric_test = NumericProcessor()
+    print("=== Code Nexus - Data Stream ===", end="\n\n")
+    print("Initialize Data Stream...")
     data_s = DataStream()
+    print("== DataStream statistics ==")
     data_s.print_processors_stats()
+
+    print("Registering Numeric Processing")
+    numeric_test = NumericProcessor()
     data_s.register_processor(numeric_test)
+    print("Send first batch of data on stream:", test)
     data_s.process_stream(test)
+    print("== DataStream statistics ==")
+    data_s.print_processors_stats()
+    print()
+
+    print("Registering other data processors")
+    text_test = TextProcessor()
+    log_test = LogProcessor()
+    data_s.register_processor(text_test)
+    data_s.register_processor(log_test)
+
+    print("Send the same batch again")
+    data_s.process_stream(test)
+
+    print("== DataStream statistics ==")
+    data_s.print_processors_stats()
+    print()
+
+    print("Consume some elements from the "
+          "data processors: Numeric 3, Text 2, Log 1")
+
+    numeric_test.output()
+    numeric_test.output()
+    numeric_test.output()
+
+    text_test.output()
+    text_test.output()
+
+    log_test.output()
+
+    print("== DataStream statistics ==")
     data_s.print_processors_stats()
 
 

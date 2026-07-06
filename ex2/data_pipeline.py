@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Protocol
 
 
 class DataProcessor(ABC):
@@ -127,6 +127,70 @@ class DataStream():
             len_store, rank = proc.data_status()
             print(f"{proc.__class__.__name__}: total {rank} items processed, "
                   f"remaining {len_store} on processor")
+            
+    def output_pipeline(self, nb: int, plugin: ExportPlugin) -> None:
+        results: list[tuple[int, str]] = []
+        for proc in self._processors:
+            for _ in range(nb):
+                store_len, _ = proc.data_status()
+                if  store_len > 0:
+                    out = proc.output()
+                    results.append(out)
+        print("Results:", results)
+        plugin.process_output(results)
+        
 
-class ExportPlugin:
+
+class ExportPlugin(Protocol):
+    def process_output(self, data: list[tuple[int, str]]) -> None:
+        pass
+
+class CSVExportPlugin:
+    def process_output(self, data: list[tuple[int, str]]) -> None: 
+        print()
+
+class JSONExportPlugin:
+    def process_output(self, data: list[tuple[int, str]]) -> None:
+        print()
+
+def data_pipeline() -> None:
+    test = ['Hello world',
+            [3.14, -1, 2.71],
+            [{'log_level': 'WARNING', 'log_message': 'Telnet access!'},
+             {'log_level': 'INFO', 'log_message': 'User wil isconnected'}],
+            42,
+            ['Hi', 'five']]
+
+    print("=== Code Nexus - Data Stream ===", end="\n\n")
+    print("Initialize Data Stream...")
+    data_s = DataStream()
+    print("== DataStream statistics ==")
+    data_s.print_processors_stats()
+
+    print("Registering Processors")
+    numeric_test = NumericProcessor()
+    text_test = TextProcessor()
+    log_test = LogProcessor()
+    data_s.register_processor(numeric_test)
+    data_s.register_processor(text_test)
+    data_s.register_processor(log_test)
+    print()
+
+    print("Send first batch of data on stream:", test)
+    data_s.process_stream(test)
+    print()
+
+    print("== DataStream statistics ==")
+    data_s.print_processors_stats()
+    print()
     
+    #data_s.output_pipeline(1100, )
+
+    print("== DataStream statistics ==")
+    data_s.print_processors_stats()
+
+
+
+
+if __name__ == "__main__":
+    data_pipeline()

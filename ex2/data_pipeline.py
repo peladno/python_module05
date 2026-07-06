@@ -91,6 +91,8 @@ class LogProcessor(DataProcessor):
 
     def validate(self, data: Any) -> bool:
         if isinstance(data, dict):
+            if not data:
+                return False
             return all(isinstance(k, str) and isinstance(v, str)
                        for k, v in data.items())
 
@@ -190,7 +192,6 @@ def data_pipeline() -> None:
     csv_plugin = CSVExportPlugin()
     data_s.output_pipeline(3, csv_plugin)
     print()
-    # json_plugin = JSONExportPlugin()
 
     print("== DataStream statistics ==")
     data_s.print_processors_stats()

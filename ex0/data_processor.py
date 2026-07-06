@@ -72,6 +72,8 @@ class LogProcessor(DataProcessor):
 
     def validate(self, data: Any) -> bool:
         if isinstance(data, dict):
+            if not data:
+                return False
             return all(isinstance(k, str) and isinstance(v, str)
                        for k, v in data.items())
 
@@ -126,13 +128,11 @@ def data_processor() -> None:
     print("Testing numeric processor (valid & invalid ingest)")
     numeric2 = NumericProcessor()
 
-    # Valid ingest
     numeric2.ingest(100)
     numeric2.ingest([1, 2, 3])
 
-    # Invalid ingest (should raise)
     try:
-        numeric2.ingest("hola")   # invalid
+        numeric2.ingest("hola")  
     except ValueError as e:
         print(" Caught expected exception in numeric ingest:", e)
 
@@ -154,13 +154,11 @@ def data_processor() -> None:
     print("Testing text processor (valid & invalid ingest)")
     text2 = TextProcessor()
 
-    # Valid ingest
     text2.ingest("hola")
     text2.ingest(["uno", "dos"])
 
-    # Invalid ingest (should raise)
     try:
-        text2.ingest([1, 2, 3])   # invalid
+        text2.ingest([1, 2, 3])
     except ValueError as e:
         print(" Caught expected exception in text ingest:", e)
 
@@ -189,9 +187,8 @@ def data_processor() -> None:
         {"log_level": "ERROR", "log_message": "Boom"},
     ])
 
-    # Invalid ingest (should raise)
     try:
-        logs2.ingest({"log_level": 123, "log_message": "Nope"})  # invalid
+        logs2.ingest({"log_level": 123, "log_message": "Nope"})
     except ValueError as e:
         print(" Caught expected exception in log ingest:", e)
 

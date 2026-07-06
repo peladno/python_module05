@@ -2,6 +2,22 @@ from abc import ABC, abstractmethod
 from typing import Any, Protocol
 
 
+class ExportPlugin(Protocol):
+    def process_output(self, data: list[tuple[int, str]]) -> None:
+        pass
+
+
+class CSVExportPlugin:
+    def process_output(self, data: list[tuple[int, str]]) -> None:
+        print("CSV Output")
+        print(",".join([item for _, item in data]))
+
+
+class JSONExportPlugin:
+    def process_output(self, data: list[tuple[int, str]]) -> None:
+        print()
+
+
 class DataProcessor(ABC):
     def __init__(self) -> None:
         self._storage: list[tuple[int, str]] = []
@@ -127,31 +143,17 @@ class DataStream():
             len_store, rank = proc.data_status()
             print(f"{proc.__class__.__name__}: total {rank} items processed, "
                   f"remaining {len_store} on processor")
-            
+
     def output_pipeline(self, nb: int, plugin: ExportPlugin) -> None:
-        results: list[tuple[int, str]] = []
         for proc in self._processors:
+            results: list[tuple[int, str]] = []
             for _ in range(nb):
                 store_len, _ = proc.data_status()
-                if  store_len > 0:
+                if store_len > 0:
                     out = proc.output()
                     results.append(out)
-        print("Results:", results)
-        plugin.process_output(results)
-        
+            plugin.process_output(results)
 
-
-class ExportPlugin(Protocol):
-    def process_output(self, data: list[tuple[int, str]]) -> None:
-        pass
-
-class CSVExportPlugin:
-    def process_output(self, data: list[tuple[int, str]]) -> None: 
-        print()
-
-class JSONExportPlugin:
-    def process_output(self, data: list[tuple[int, str]]) -> None:
-        print()
 
 def data_pipeline() -> None:
     test = ['Hello world',
@@ -183,13 +185,21 @@ def data_pipeline() -> None:
     print("== DataStream statistics ==")
     data_s.print_processors_stats()
     print()
-    
-    #data_s.output_pipeline(1100, )
+
+    print("Send 3 processed data from each processor to a CSV plugin:")
+    csv_plugin = CSVExportPlugin()
+    data_s.output_pipeline(3, csv_plugin)
+    print()
+    # json_plugin = JSONExportPlugin()
 
     print("== DataStream statistics ==")
     data_s.print_processors_stats()
 
-
+    test2 =  [21,
+              ['I love AI', 'LLMs are wonderful', 'Stay healthy'],
+              [{'log_level': 'ERROR', 'log_message': '500 server crash'},
+               {'log_level': 'NOTICE', 'log_message': '10 days'}],
+              [32, 42, 64, 84, 128, 168], 'World hello']
 
 
 if __name__ == "__main__":

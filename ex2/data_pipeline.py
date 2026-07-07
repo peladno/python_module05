@@ -12,10 +12,11 @@ class CSVExportPlugin:
         print("CSV Output")
         print(",".join([item for _, item in data]))
 
-
 class JSONExportPlugin:
     def process_output(self, data: list[tuple[int, str]]) -> None:
-        print()
+        print("JSON Output")
+        json_items = ", ".join([f"\"item_{rank}\": \"{item}\"" for rank, item in data])
+        print("{" + json_items + "}")
 
 
 class DataProcessor(ABC):
@@ -199,9 +200,26 @@ def data_pipeline() -> None:
     test2 =  [21,
               ['I love AI', 'LLMs are wonderful', 'Stay healthy'],
               [{'log_level': 'ERROR', 'log_message': '500 server crash'},
-               {'log_level': 'NOTICE', 'log_message': '10 days'}],
+               {'log_level': 'NOTICE', 'log_message': 'expire in 10 days'}],
               [32, 42, 64, 84, 128, 168], 'World hello']
+    
+    print("Send another batch of data on stream:", test2)
+    data_s.process_stream(test2)
+    print()
 
+    
+    print("== DataStream statistics ==")
+    data_s.print_processors_stats()
+    print()
+
+    print("Send 5 processed data from each processor to a JSON plugin:")
+    json_plugin = JSONExportPlugin()
+    data_s.output_pipeline(5, json_plugin)
+    print()
+
+    print("== DataStream statistics ==")
+    data_s.print_processors_stats()
+    print()
 
 if __name__ == "__main__":
     data_pipeline()

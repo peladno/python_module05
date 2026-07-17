@@ -12,10 +12,12 @@ class CSVExportPlugin:
         print("CSV Output")
         print(",".join([item for _, item in data]))
 
+
 class JSONExportPlugin:
     def process_output(self, data: list[tuple[int, str]]) -> None:
         print("JSON Output")
-        json_items = ", ".join([f"\"item_{rank}\": \"{item}\"" for rank, item in data])
+        json_items = ", ".join([f"\"item_{rank}\": "
+                                "\"{item}\"" for rank, item in data])
         print("{" + json_items + "}")
 
 
@@ -100,10 +102,14 @@ class LogProcessor(DataProcessor):
         if isinstance(data, list):
             if not data:
                 return False
-            return all(isinstance(d, dict) and all(
-                isinstance(k, str) and isinstance(v, str)
-                for k, v in d.items()
-            )for d in data)
+            return all(
+                isinstance(d, dict)
+                and all(
+                    isinstance(k, str) and isinstance(v, str)
+                    for k, v in d.items()
+                )
+                for d in data
+            )
         return False
 
     def ingest(self, data: dict[str, str] | list[dict[str, str]]) -> None:
@@ -197,17 +203,14 @@ def data_pipeline() -> None:
     print("== DataStream statistics ==")
     data_s.print_processors_stats()
 
-    test2 =  [21,
-              ['I love AI', 'LLMs are wonderful', 'Stay healthy'],
-              [{'log_level': 'ERROR', 'log_message': '500 server crash'},
-               {'log_level': 'NOTICE', 'log_message': 'expire in 10 days'}],
-              [32, 42, 64, 84, 128, 168], 'World hello']
-    
+    test2 = [21, 12, 23,
+             ['I love AI', 'LLMs are wonderful', 'Stay healthy'],
+             [{'log_level': 'ERROR', 'log_message': '500 server crash'},
+              {'log_level': 'NOTICE', 'log_message': 'expire in 10 days'}]]
     print("Send another batch of data on stream:", test2)
     data_s.process_stream(test2)
     print()
 
-    
     print("== DataStream statistics ==")
     data_s.print_processors_stats()
     print()
@@ -220,6 +223,7 @@ def data_pipeline() -> None:
     print("== DataStream statistics ==")
     data_s.print_processors_stats()
     print()
+
 
 if __name__ == "__main__":
     data_pipeline()

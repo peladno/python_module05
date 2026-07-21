@@ -132,7 +132,7 @@ def data_processor() -> None:
     numeric2.ingest([1, 2, 3])
 
     try:
-        numeric2.ingest("hola")  
+        numeric2.ingest("hola")
     except ValueError as e:
         print(" Caught expected exception in numeric ingest:", e)
 
